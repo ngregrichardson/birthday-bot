@@ -1,9 +1,12 @@
 import {cert, initializeApp} from "firebase-admin/app";
-import {Client, TextChannel} from "discord.js";
+import {Client, Guild, TextChannel} from "discord.js";
 import {Birthday, BirthdayGuild} from "../@types";
 import isToday from "date-fns/isToday";
 import {getGifUrl} from "./tenor";
 import {getFirestore} from "firebase-admin/firestore";
+import isBefore from "date-fns/isBefore";
+import startOfDay from "date-fns/startOfDay";
+import addDays from "date-fns/addDays";
 
 let db: FirebaseFirestore.Firestore;
 
@@ -75,3 +78,34 @@ export const runBirthdayCheck = async (client: Client) => {
         }
     }
 };
+
+export const getSortedBirthdays = async (guild: Guild) => {
+    const birthdaysCollections = await db.collection("guilds").doc(guild.id).collection("birthdays").get();
+
+    let filteredBirthdays: {userId: string, birthday: Date}[] = [];
+
+    birthdaysCollections.docs.forEach((birthdayDoc) => {
+        const date = birthdayDoc.data().birthday.toDate();
+        date.setFullYear(new Date().getFullYear());
+
+        if(isBefore(startOfDay(date), startOfDay(new Date()))) {
+            date.setFullYear((new Date().getFullYear()) + 1);
+        }
+
+        filteredBirthdays.push({userId: birthdayDoc.id, birthday: addDays(date, 1)});
+    });
+
+    filteredBirthdays.sort((a, b) => {
+        return a.birthday < b.birthday ? -1 : 1;
+    });
+
+    for(let i = filteredBirthdays.length - 1; i >= 0; i--) {
+        const birthday = filteredBirthdays[i];
+
+        const user = await guild.members.fetch(birthday.userId);
+
+        if(!user) filteredBirthdays = filteredBirthdays.splice(i, 1);
+    }
+
+    return filteredBirthdays;
+}
