@@ -6,7 +6,6 @@ import {getGifUrl} from "./tenor";
 import {getFirestore} from "firebase-admin/firestore";
 import isBefore from "date-fns/isBefore";
 import startOfDay from "date-fns/startOfDay";
-import addDays from "date-fns/addDays";
 
 let db: FirebaseFirestore.Firestore;
 
@@ -92,7 +91,7 @@ export const getSortedBirthdays = async (guild: Guild) => {
             date.setFullYear((new Date().getFullYear()) + 1);
         }
 
-        filteredBirthdays.push({userId: birthdayDoc.id, birthday: addDays(date, 1)});
+        filteredBirthdays.push({userId: birthdayDoc.id, birthday: date});
     });
 
     filteredBirthdays.sort((a, b) => {

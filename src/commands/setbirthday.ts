@@ -10,6 +10,7 @@ import startOfDay from "date-fns/startOfDay";
 import format from "date-fns/format";
 import {Birthday} from "../@types";
 import {runBirthdayCheck} from "../utils/utils";
+import zonedTimeToUtc from "date-fns-tz/zonedTimeToUtc";
 
 const db = getFirestore();
 const daysUntilUpdatable = 365;
@@ -26,7 +27,8 @@ const execute = async (interaction: CommandInteraction) => {
   const year = interaction.options.getInteger("year");
 
   try {
-    const birthDate = parse(`${day} ${month} ${year}`, "d MMMM yyyy", startOfDay(new Date()));
+    const localBirthDate = parse(`${day} ${month} ${year}`, "d MMMM yyyy", startOfDay(new Date()));
+    const birthDate = zonedTimeToUtc(localBirthDate, Intl.DateTimeFormat().resolvedOptions().timeZone);
 
     if(!birthDate || !isValid(birthDate)) throw new Error("Invalid date trying to set birthday.");
 
@@ -45,6 +47,7 @@ const execute = async (interaction: CommandInteraction) => {
         return await interaction.reply({ content: `You cannot update your birthday for another ${daysUntilUpdatable - dayDifference} days`, ephemeral: true });
       }
     }
+
     await db.collection("guilds").doc(interaction.guildId).collection("birthdays").doc(interaction.user.id).set({birthday: Timestamp.fromDate(birthDate), updatedOn: Timestamp.now()}, {merge: true});
 
     await interaction.reply({ content: `Your birthday has been set to **${format(birthDate, "MMMM do yyyy")}**. You can update your birthday again in 365 days.`, ephemeral: true });
