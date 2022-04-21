@@ -9,4 +9,5 @@ interface Birthday {
 interface BirthdayGuild {
     birthdayRoleId: string;
     birthdayChannelId: string;
+    currentBirthdays: number;
 }

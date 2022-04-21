@@ -8,8 +8,8 @@ import isValid from "date-fns/isValid";
 import parse from "date-fns/parse";
 import startOfDay from "date-fns/startOfDay";
 import format from "date-fns/format";
-import {Birthday} from "../@types";
-import {runBirthdayCheck} from "../utils/utils";
+import {Birthday, BirthdayGuild} from "../@types";
+import {triggerBirthday, updateBotActivity} from "../utils/utils";
 import zonedTimeToUtc from "date-fns-tz/zonedTimeToUtc";
 
 const db = getFirestore();
@@ -48,11 +48,19 @@ const execute = async (interaction: CommandInteraction) => {
       }
     }
 
-    await db.collection("guilds").doc(interaction.guildId).collection("birthdays").doc(interaction.user.id).set({birthday: Timestamp.fromDate(birthDate), updatedOn: Timestamp.now()}, {merge: true});
+    const birthdayData = {birthday: Timestamp.fromDate(birthDate), updatedOn: Timestamp.now()};
+
+    await db.collection("guilds").doc(interaction.guildId).collection("birthdays").doc(interaction.user.id).set(birthdayData, {merge: true});
 
     await interaction.reply({ content: `Your birthday has been set to **${format(birthDate, "MMMM do yyyy")}**. You can update your birthday again in 365 days.`, ephemeral: true });
 
-    await runBirthdayCheck(interaction.client);
+    const birthdayGuildData = await db.collection("guilds").doc(interaction.guildId).get();
+    const birthdayGuild = birthdayGuildData.data() as BirthdayGuild;
+
+    if(await triggerBirthday(interaction.client, interaction.guildId, interaction.user.id, birthdayGuild, birthdayData)) {
+      await birthdayGuildData.ref.set({ currentBirthdays: (birthdayGuild.currentBirthdays || 0) + 1 }, {merge: true});
+      await updateBotActivity(interaction.client);
+    }
   }catch(e) {
     console.error(e);
     await interaction.reply({ content: "Sorry, that looks like an invalid date. Please try again.", ephemeral: true });

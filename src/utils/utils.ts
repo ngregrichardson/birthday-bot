@@ -36,10 +36,62 @@ export const initializeFirebase = () => {
     db = getFirestore();
 };
 
+export const triggerBirthday = async (client: Client, guildId: string, userId: string, guildData: BirthdayGuild, birthdayData: Birthday) => {
+    const birthDate = birthdayData.birthday.toDate();
+    birthDate.setFullYear(new Date().getFullYear());
+
+    const guild = await client.guilds.fetch(guildId);
+    const user = await guild.members.fetch(userId);
+
+    if(user) {
+        const canChangeRole = guildData.birthdayRoleId && guild.roles.cache.get(guildData.birthdayRoleId);
+        if(isToday(birthDate)) {
+            if(canChangeRole && !user.roles.cache.get(guildData.birthdayRoleId)) {
+                await user.roles.add(guildData.birthdayRoleId);
+            }
+
+            if(guildData.birthdayChannelId) {
+                const channel = guild.channels.cache.get(guildData.birthdayChannelId) as TextChannel;
+
+                if(channel) {
+                    await channel.send({ content: `Happy birthday ${user}! 🎉🎂🎆 ${await getGifUrl("birthday")}` });
+                }
+            }
+
+            return true;
+        }else {
+            if(canChangeRole && user.roles.cache.get(guildData.birthdayRoleId)) {
+                await user.roles.remove(guildData.birthdayRoleId);
+            }
+
+            return false;
+        }
+    }
+
+    return false;
+}
+
+export const updateBotActivity = async (client: Client, numberOfBirthdays?: number) => {
+    if(!numberOfBirthdays) {
+        numberOfBirthdays = 0;
+        const guilds = await db.collection("guilds").get();
+
+        guilds.forEach((guildDoc) => {
+            const guild = guildDoc.data() as BirthdayGuild;
+            numberOfBirthdays = numberOfBirthdays ? numberOfBirthdays + guild.currentBirthdays : guild.currentBirthdays;
+        });
+    }
+    if(client.user) {
+        await client.user.setActivity(`${numberOfBirthdays} global users celebrate their birthday`, { type: "WATCHING" });
+    }
+};
+
 export const runBirthdayCheck = async (client: Client) => {
+    let totalBirthdays = 0;
     if(db) {
         const guildCollection = await db.collection("guilds").get();
         for (const guildDoc of guildCollection.docs) {
+            let guildBirthdays = 0;
             const guildData = guildDoc.data() as BirthdayGuild;
 
             const birthdaysCollection = await db.collection("guilds").doc(guildDoc.id).collection("birthdays").get();
@@ -47,34 +99,16 @@ export const runBirthdayCheck = async (client: Client) => {
             for (const birthdayDoc of birthdaysCollection.docs) {
                 const birthdayData = birthdayDoc.data() as Birthday;
 
-                const birthDate = birthdayData.birthday.toDate();
-                birthDate.setFullYear(new Date().getFullYear());
-
-                const guild = await client.guilds.fetch(guildDoc.id);
-                const user = await guild.members.fetch(birthdayDoc.id);
-
-                if(user) {
-                    const canChangeRole = guildData.birthdayRoleId && guild.roles.cache.get(guildData.birthdayRoleId);
-                    if(isToday(birthDate)) {
-                        if(canChangeRole && !user.roles.cache.get(guildData.birthdayRoleId)) {
-                            await user.roles.add(guildData.birthdayRoleId);
-                        }
-
-                        if(guildData.birthdayChannelId) {
-                            const channel = guild.channels.cache.get(guildData.birthdayChannelId) as TextChannel;
-
-                            if(channel) {
-                                await channel.send({ content: `Happy birthday ${user}! 🎉🎂🎆 ${await getGifUrl("birthday")}` });
-                            }
-                        }
-                    }else {
-                        if(canChangeRole && user.roles.cache.get(guildData.birthdayRoleId)) {
-                            await user.roles.remove(guildData.birthdayRoleId);
-                        }
-                    }
+                if(await triggerBirthday(client, guildDoc.id, birthdayDoc.id, guildData, birthdayData)) {
+                    guildBirthdays++;
                 }
             }
+
+            await guildDoc.ref.set({ currentBirthdays: guildBirthdays }, {merge: true});
+            totalBirthdays += guildBirthdays;
         }
+
+        await updateBotActivity(client, totalBirthdays);
     }
 };
 
