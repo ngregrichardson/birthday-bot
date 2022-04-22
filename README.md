@@ -3,17 +3,17 @@ A Discord bot to keep track of users' birthdays.
 
 # 🤔 About
 
-✅ Allow users to ste their own birthday.
+✅ Allow users to set their own birthday.
 
 ✅ View the next and upcoming birthdays in the server.
 
-✅ Shoutout users in specific channels and give them specific roles on their birthday.
+✅ Shout-out users in specific channels and give them specific roles on their birthday.
 
-✅ View anyones birthdays on the server.
+✅ View the birthday of any user in the server.
 
 ## 📋 Usage
 
-Want to add Milk Bot to your server? Add him [here](https://discord.com/api/oauth2/authorize?client_id=828325559402364969&permissions=116800&scope=bot)!
+Want to add Birthday Bot to your server? Add him [here](https://discord.com/api/oauth2/authorize?client_id=966342203578400768&permissions=412585609280&scope=bot%20applications.commands)!
 
 ## 🖥️ Commands
 
@@ -26,4 +26,4 @@ Want to add Milk Bot to your server? Add him [here](https://discord.com/api/oaut
 
 ## 🙏 Contributing
 
-Think of other ways Milk Bot could show the milky love in Discord? Feel free to [create an issue](https://github.com/ngregrichardson/birthday-bot/issues).
+Think of other ways Birthday Bot could be better? Feel free to [create an issue](https://github.com/ngregrichardson/birthday-bot/issues).
