@@ -1,4 +1,4 @@
-import {firestore} from "firebase-admin";
+import { firestore } from "firebase-admin";
 import Timestamp = firestore.Timestamp;
 
 interface Birthday {

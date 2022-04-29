@@ -7,53 +7,55 @@ import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
 import fs from "fs";
 import { join } from "path";
-import {initializeFirebase} from "./utils";
+import { initializeFirebase } from "./utils";
 
 config();
 
 initializeFirebase();
 
 const deployCommands = async (path = "../commands") => {
-  const commands = [];
-  const commandFiles = fs
-    .readdirSync(join(__dirname, path))
-    .filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
+    const commands = [];
+    const commandFiles = fs
+        .readdirSync(join(__dirname, path))
+        .filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
 
-  for (const file of commandFiles) {
-    const command = require(join(__dirname, path, file));
-    commands.push(command.default.data.toJSON());
-  }
-
-  if (commands.length <= 0) return;
-
-  const rest = new REST({ version: "9" }).setToken(
-    process.env.BOT_TOKEN as string
-  );
-
-  try {
-    console.log("Started refreshing application (/) commands.");
-
-    if(process.env.IS_DEBUG) {
-      await rest.put(
-          Routes.applicationGuildCommands(process.env.CLIENT_ID as string, process.env.TEST_GUILD_ID as string),
-          {
-            body: commands,
-          }
-      );
-    }else {
-      await rest.put(
-          Routes.applicationCommands(process.env.CLIENT_ID as string),
-          {
-            body: commands,
-          }
-      );
+    for (const file of commandFiles) {
+        const command = require(join(__dirname, path, file));
+        commands.push(command.default.data.toJSON());
     }
 
+    if (commands.length <= 0) return;
 
-    console.log("Successfully reloaded application (/) commands.");
-  } catch (error) {
-    console.error(error);
-  }
+    const rest = new REST({ version: "9" }).setToken(
+        process.env.BOT_TOKEN as string
+    );
+
+    try {
+        console.log("Started refreshing application (/) commands.");
+
+        if (process.env.IS_DEBUG) {
+            await rest.put(
+                Routes.applicationGuildCommands(
+                    process.env.CLIENT_ID as string,
+                    process.env.TEST_GUILD_ID as string
+                ),
+                {
+                    body: commands,
+                }
+            );
+        } else {
+            await rest.put(
+                Routes.applicationCommands(process.env.CLIENT_ID as string),
+                {
+                    body: commands,
+                }
+            );
+        }
+
+        console.log("Successfully reloaded application (/) commands.");
+    } catch (error) {
+        console.error(error);
+    }
 };
 
 deployCommands().catch((e) => console.error(e));
