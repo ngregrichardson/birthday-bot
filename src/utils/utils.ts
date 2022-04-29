@@ -130,7 +130,6 @@ export const runBirthdayCheck = async (client: Client) => {
     if (db) {
         const guildCollection = await db.collection("guilds").get();
         for (const guildDoc of guildCollection.docs) {
-            if (guildDoc.id !== "966468231898480731") continue;
             let guildBirthdays = 0;
             const guildData = guildDoc.data() as BirthdayGuild;
 
