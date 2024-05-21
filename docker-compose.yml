@@ -1,0 +1,14 @@
+name: birthday-bot
+
+services:
+  birthday-bot:
+    image: ngregrichardson/birthday-bot
+    container_name: birthday-bot
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DISCORD_TOKEN
+      - TENOR_API_KEY
+      - DATABASE_URL

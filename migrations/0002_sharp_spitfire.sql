@@ -1,0 +1,1 @@
+ALTER TABLE "birthdays" ADD COLUMN "is_birthday" boolean DEFAULT false NOT NULL;
