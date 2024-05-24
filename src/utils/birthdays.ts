@@ -12,14 +12,24 @@ export const getSortedBirthdays = async (guild: Guild) => {
 
 	return birthdays
 		.reduce(
-			(acc, { userId, birthday }) => {
+			(acc, { userId, birthday, timeZone }) => {
 				if (birthday) {
 					let dateTime = DateTime.fromJSDate(birthday, {
 						zone: "utc",
-					}).set({ year: DateTime.now().year });
+					})
+						.set({ year: DateTime.now().year })
+						.setZone(timeZone, {
+							keepLocalTime: true,
+						});
+
+					let isToday = false;
 
 					if (dateTime < DateTime.now()) {
-						dateTime = dateTime.plus({ year: 1 });
+						if (DateTime.now() < dateTime.plus({ day: 1 })) {
+							isToday = true;
+						} else {
+							dateTime = dateTime.plus({ year: 1 });
+						}
 					}
 
 					const user = guild.members.cache.find((m) => m.id === userId);
@@ -28,13 +38,14 @@ export const getSortedBirthdays = async (guild: Guild) => {
 						acc.push({
 							user,
 							birthday: dateTime,
+							isToday,
 						});
 					}
 				}
 
 				return acc;
 			},
-			[] as { user: GuildMember; birthday: DateTime }[],
+			[] as { user: GuildMember; birthday: DateTime; isToday: boolean }[],
 		)
 		.sort((a, b) => {
 			return a.birthday < b.birthday ? -1 : 1;

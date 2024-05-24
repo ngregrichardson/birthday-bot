@@ -267,7 +267,10 @@ export const autocomplete = ({ interaction }: AutocompleteProps) => {
 			const timeZones = Intl.supportedValuesOf("timeZone");
 
 			output = timeZones.reduce((acc, curr) => {
-				if (acc.length < 25 && curr.startsWith(value)) {
+				if (
+					acc.length < 25 &&
+					curr.toLowerCase().startsWith(value.toLowerCase())
+				) {
 					acc.push({
 						name: curr,
 						value: curr,

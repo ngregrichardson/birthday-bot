@@ -17,8 +17,10 @@ export const run = async ({ interaction }: SlashCommandProps) => {
 	}
 
 	const embed = new EmbedBuilder().setTitle("Upcoming Birthdays").addFields(
-		...birthdays.slice(0, 25).map(({ birthday, user }, i) => ({
-			name: `${i + 1}. ${formatReadableDateTime(birthday)}`,
+		...birthdays.slice(0, 25).map(({ birthday, user, isToday }, i) => ({
+			name: `${i + 1}. ${
+				isToday ? "Today 🎉!" : formatReadableDateTime(birthday)
+			}`,
 			value: user.toString(),
 		})),
 	);

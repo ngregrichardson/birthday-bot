@@ -5,3 +5,5 @@ DO $$ BEGIN
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
+
+ALTER TABLE "birthdays" ALTER COLUMN "birthday" DROP NOT NULL;
