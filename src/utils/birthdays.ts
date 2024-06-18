@@ -5,52 +5,73 @@ import { db } from "../db/db";
 import { birthdaysTable } from "../db/schema";
 import { getGifUrl } from "./tenor";
 
-export const getSortedBirthdays = async (guild: Guild) => {
+type Birthday = { user: GuildMember; birthday: DateTime; isToday: boolean };
+
+export const getSortedBirthdays = async (
+	guild: Guild,
+): Promise<[Birthday, ...Birthday[]][]> => {
 	const birthdays = await db.query.birthdaysTable.findMany({
 		where: eq(birthdaysTable.serverId, guild.id),
 	});
 
-	const reducedBirthdays = await birthdays.reduce<
-		Promise<{ user: GuildMember; birthday: DateTime; isToday: boolean }[]>
-	>(async (acc, { userId, birthday, timeZone }) => {
-		const awaitedAcc = await acc;
+	const reducedBirthdays = await birthdays.reduce<Promise<Birthday[]>>(
+		async (acc, { userId, birthday, timeZone }) => {
+			const awaitedAcc = await acc;
 
-		if (birthday) {
-			let dateTime = DateTime.fromJSDate(birthday, {
-				zone: "utc",
-			})
-				.set({ year: DateTime.now().year })
-				.setZone(timeZone, {
-					keepLocalTime: true,
-				});
+			if (birthday) {
+				let dateTime = DateTime.fromJSDate(birthday, {
+					zone: "utc",
+				})
+					.set({ year: DateTime.now().year })
+					.setZone(timeZone, {
+						keepLocalTime: true,
+					});
 
-			let isToday = false;
+				let isToday = false;
 
-			if (dateTime < DateTime.now()) {
-				if (DateTime.now() < dateTime.plus({ day: 1 })) {
-					isToday = true;
-				} else {
-					dateTime = dateTime.plus({ year: 1 });
+				if (dateTime < DateTime.now()) {
+					if (DateTime.now() < dateTime.plus({ day: 1 })) {
+						isToday = true;
+					} else {
+						dateTime = dateTime.plus({ year: 1 });
+					}
+				}
+
+				const user = await guild.members.fetch(userId);
+
+				if (user) {
+					awaitedAcc.push({
+						user,
+						birthday: dateTime,
+						isToday,
+					});
 				}
 			}
 
-			const user = await guild.members.fetch(userId);
+			return awaitedAcc;
+		},
+		Promise.resolve([]),
+	);
 
-			if (user) {
-				awaitedAcc.push({
-					user,
-					birthday: dateTime,
-					isToday,
-				});
-			}
-		}
-
-		return awaitedAcc;
-	}, Promise.resolve([]));
-
-	return reducedBirthdays.sort((a, b) => {
+	reducedBirthdays.sort((a, b) => {
 		return a.birthday < b.birthday ? -1 : 1;
 	});
+
+	const dateKeys = [];
+
+	const dateMap = new Map<string, Birthday[]>();
+
+	for (const b of reducedBirthdays) {
+		const key = b.birthday.toFormat("yyyy-MM-dd");
+		if (dateMap.has(key)) {
+			dateMap.get(key)?.push(b);
+		} else {
+			dateMap.set(key, [b]);
+			dateKeys.push(key);
+		}
+	}
+
+	return dateKeys.map((k) => dateMap.get(k) as [Birthday, ...Birthday[]]);
 };
 
 export const removeBirthday = async (
@@ -178,4 +199,8 @@ export const runBirthdayCheck = async (
 			}
 		}
 	}
+};
+
+export const hasAtLeastOne = <T>(list: readonly T[]): list is [T, ...T[]] => {
+	return list.length > 0;
 };
