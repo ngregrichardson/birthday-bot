@@ -16,8 +16,8 @@ export const run = async ({ interaction }: SlashCommandProps) => {
 	}
 
 	const birthdaysString = birthdays[0].map((b, i) =>
-		birthdays[0].length > 1 && i === birthdays[0].length - 1
-			? `and ${b.user}'s`
+		i === birthdays[0].length - 1
+			? `${birthdays[0].length > 1 ? "and " : ""}${b.user}'s`
 			: b.user,
 	);
 
