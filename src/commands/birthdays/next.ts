@@ -16,7 +16,9 @@ export const run = async ({ interaction }: SlashCommandProps) => {
 	}
 
 	const birthdaysString = birthdays[0].map((b, i) =>
-		i === birthdays[0].length - 1 ? `and ${b.user}'s` : b.user,
+		birthdays[0].length > 1 && i === birthdays[0].length - 1
+			? `and ${b.user}'s`
+			: b.user,
 	);
 
 	return interaction.editReply({
@@ -24,7 +26,7 @@ export const run = async ({ interaction }: SlashCommandProps) => {
 			birthdays[0].length === 2
 				? birthdaysString.join(" ")
 				: birthdaysString.join(", ")
-		} birthday${birthdays[0].length > 1 ? "s are" : "is"} ${
+		} birthday${birthdays[0].length > 1 ? "s are" : " is"} ${
 			birthdays[0][0].isToday
 				? "today 🎉!"
 				: `upcoming on **${formatReadableDateTime(birthdays[0][0].birthday)}**`
