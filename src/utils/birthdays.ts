@@ -10,46 +10,47 @@ export const getSortedBirthdays = async (guild: Guild) => {
 		where: eq(birthdaysTable.serverId, guild.id),
 	});
 
-	return birthdays
-		.reduce(
-			(acc, { userId, birthday, timeZone }) => {
-				if (birthday) {
-					let dateTime = DateTime.fromJSDate(birthday, {
-						zone: "utc",
-					})
-						.set({ year: DateTime.now().year })
-						.setZone(timeZone, {
-							keepLocalTime: true,
-						});
+	const reducedBirthdays = await birthdays.reduce<
+		Promise<{ user: GuildMember; birthday: DateTime; isToday: boolean }[]>
+	>(async (acc, { userId, birthday, timeZone }) => {
+		const awaitedAcc = await acc;
 
-					let isToday = false;
+		if (birthday) {
+			let dateTime = DateTime.fromJSDate(birthday, {
+				zone: "utc",
+			})
+				.set({ year: DateTime.now().year })
+				.setZone(timeZone, {
+					keepLocalTime: true,
+				});
 
-					if (dateTime < DateTime.now()) {
-						if (DateTime.now() < dateTime.plus({ day: 1 })) {
-							isToday = true;
-						} else {
-							dateTime = dateTime.plus({ year: 1 });
-						}
-					}
+			let isToday = false;
 
-					const user = guild.members.cache.find((m) => m.id === userId);
-
-					if (user) {
-						acc.push({
-							user,
-							birthday: dateTime,
-							isToday,
-						});
-					}
+			if (dateTime < DateTime.now()) {
+				if (DateTime.now() < dateTime.plus({ day: 1 })) {
+					isToday = true;
+				} else {
+					dateTime = dateTime.plus({ year: 1 });
 				}
+			}
 
-				return acc;
-			},
-			[] as { user: GuildMember; birthday: DateTime; isToday: boolean }[],
-		)
-		.sort((a, b) => {
-			return a.birthday < b.birthday ? -1 : 1;
-		});
+			const user = await guild.members.fetch(userId);
+
+			if (user) {
+				awaitedAcc.push({
+					user,
+					birthday: dateTime,
+					isToday,
+				});
+			}
+		}
+
+		return awaitedAcc;
+	}, Promise.resolve([]));
+
+	return reducedBirthdays.sort((a, b) => {
+		return a.birthday < b.birthday ? -1 : 1;
+	});
 };
 
 export const removeBirthday = async (
@@ -64,10 +65,11 @@ export const removeBirthday = async (
 		});
 
 		if (roleId) {
-			await client.guilds.cache
-				.get(serverId)
-				?.members.cache.get(userId)
-				?.roles.remove(roleId);
+			const guild = await client.guilds.fetch(serverId);
+
+			const member = await guild?.members?.fetch(userId);
+
+			await member?.roles.remove(roleId);
 		}
 	} catch (e) {
 		console.error(e);
@@ -86,19 +88,14 @@ const triggerBirthday = async (
 			isBirthday: true,
 		});
 
-		const guild =
-			client.guilds.cache.get(serverId) ||
-			(await client.guilds.fetch(serverId));
+		const guild = await client.guilds.fetch(serverId);
 
 		if (guild) {
-			const user =
-				guild.members.cache.get(userId) || (await guild.members.fetch(userId));
+			const user = await guild.members.fetch(userId);
 
 			if (user) {
 				if (channelId) {
-					const channel =
-						guild.channels.cache.get(channelId) ||
-						(await guild.channels.fetch(channelId));
+					const channel = await guild.channels.fetch(channelId);
 
 					if (channel?.isTextBased()) {
 						await channel.send({
