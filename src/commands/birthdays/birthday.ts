@@ -102,14 +102,14 @@ const handleSet = async (interaction: SlashCommandProps["interaction"]) => {
 const handleGet = async (interaction: SlashCommandProps["interaction"]) => {
 	if (!interaction.guild) return;
 
+	const user = interaction.options.getUser("user", false) || interaction.user;
+
 	const existingBirthday = await db.query.birthdaysTable.findFirst({
 		where: and(
 			eq(birthdaysTable.serverId, interaction.guild.id),
-			eq(birthdaysTable.userId, interaction.user.id),
+			eq(birthdaysTable.userId, user.id),
 		),
 	});
-
-	const user = interaction.options.getUser("user", false) || interaction.user;
 
 	if (!existingBirthday?.birthday) {
 		if (interaction.user.id === user.id) {
