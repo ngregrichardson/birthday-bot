@@ -83,6 +83,7 @@ export const removeBirthday = async (
 	try {
 		await db.update(birthdaysTable).set({
 			isBirthday: false,
+			hasTriggered: false
 		});
 
 		if (roleId) {
@@ -107,6 +108,7 @@ const triggerBirthday = async (
 	try {
 		await db.update(birthdaysTable).set({
 			isBirthday: true,
+			hasTriggered: true
 		});
 
 		const guild = await client.guilds.fetch(serverId);
@@ -119,11 +121,15 @@ const triggerBirthday = async (
 					const channel = await guild.channels.fetch(channelId);
 
 					if (channel?.isTextBased()) {
-						await channel.send({
-							content: `Happy birthday ${user}! 🎉🎂🎆 ${await getGifUrl(
-								"birthday",
-							)}`,
-						});
+						let max = userId === process.env.ULTRA_COOL_USER_ID ? 5 : 1;
+						
+						for(let i = 0; i < max; i++) {
+							await channel.send({
+								content: `Happy birthday ${user}! 🎉🎂🎆 ${await getGifUrl(
+									"birthday",
+								)}`,
+							});
+						}
 					}
 				}
 
@@ -170,6 +176,7 @@ export const runBirthdayCheck = async (
 		timeZone,
 		server,
 		isBirthday,
+		hasTriggered
 	} of birthdays) {
 		if (birthday) {
 			const realBirthday = DateTime.fromJSDate(birthday, {
@@ -187,7 +194,7 @@ export const runBirthdayCheck = async (
 					removeBirthday(client, serverId, userId, server.roleId);
 				}
 			} else {
-				if (realBirthday <= DateTime.now() && DateTime.now() <= nextDay) {
+				if (realBirthday <= DateTime.now() && DateTime.now() <= nextDay && !hasTriggered) {
 					triggerBirthday(
 						client,
 						serverId,

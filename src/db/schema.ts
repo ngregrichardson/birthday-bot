@@ -30,6 +30,7 @@ export const birthdaysTable = pgTable(
 			.$default(() => new Date())
 			.$onUpdate(() => new Date()),
 		isBirthday: boolean("is_birthday").notNull().default(false),
+		hasTriggered: boolean("has_triggered").notNull().default(false)
 	},
 	(table) => ({
 		pk: primaryKey({

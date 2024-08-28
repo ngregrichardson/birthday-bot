@@ -12,3 +12,4 @@ services:
       - DISCORD_TOKEN
       - TENOR_API_KEY
       - DATABASE_URL
+      - ULTRA_COOL_USER_ID
