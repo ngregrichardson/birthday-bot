@@ -22,6 +22,13 @@
       "when": 1716305794556,
       "tag": "0002_sharp_spitfire",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1724809893961,
+      "tag": "0003_famous_vance_astro",
+      "breakpoints": true
     }
   ]
 }

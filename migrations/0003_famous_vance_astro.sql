@@ -1,0 +1,1 @@
+ALTER TABLE "birthdays" ADD COLUMN "has_triggered" boolean DEFAULT false NOT NULL;

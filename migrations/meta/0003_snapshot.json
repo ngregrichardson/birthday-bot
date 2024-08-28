@@ -1,0 +1,119 @@
+{
+  "id": "8c186aa0-b89f-4dd2-a01a-e0500e643660",
+  "prevId": "d2d5de91-2911-43bb-9882-7cec108240a2",
+  "version": "6",
+  "dialect": "postgresql",
+  "tables": {
+    "public.birthdays": {
+      "name": "birthdays",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "server_id": {
+          "name": "server_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birthday": {
+          "name": "birthday",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "time_zone": {
+          "name": "time_zone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_on": {
+          "name": "updated_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_birthday": {
+          "name": "is_birthday",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "has_triggered": {
+          "name": "has_triggered",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "birthdays_server_id_servers_id_fk": {
+          "name": "birthdays_server_id_servers_id_fk",
+          "tableFrom": "birthdays",
+          "tableTo": "servers",
+          "columnsFrom": [
+            "server_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {
+        "birthdays_user_id_server_id_pk": {
+          "name": "birthdays_user_id_server_id_pk",
+          "columns": [
+            "user_id",
+            "server_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.servers": {
+      "name": "servers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "channel_id": {
+          "name": "channel_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role_id": {
+          "name": "role_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
