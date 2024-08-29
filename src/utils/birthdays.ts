@@ -81,9 +81,17 @@ export const removeBirthday = async (
 	roleId: string | null,
 ) => {
 	try {
-		await db.update(birthdaysTable).set({
-			isBirthday: false,
-		});
+		await db
+			.update(birthdaysTable)
+			.set({
+				isBirthday: false,
+			})
+			.where(
+				and(
+					eq(birthdaysTable.serverId, serverId),
+					eq(birthdaysTable.userId, userId),
+				),
+			);
 
 		if (roleId) {
 			const guild = await client.guilds.fetch(serverId);
@@ -105,9 +113,17 @@ const triggerBirthday = async (
 	roleId: string | null,
 ) => {
 	try {
-		await db.update(birthdaysTable).set({
-			isBirthday: true,
-		});
+		await db
+			.update(birthdaysTable)
+			.set({
+				isBirthday: true,
+			})
+			.where(
+				and(
+					eq(birthdaysTable.serverId, serverId),
+					eq(birthdaysTable.userId, userId),
+				),
+			);
 
 		const guild = await client.guilds.fetch(serverId);
 
