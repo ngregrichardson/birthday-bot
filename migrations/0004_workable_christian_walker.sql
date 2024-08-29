@@ -1,0 +1,1 @@
+ALTER TABLE "birthdays" DROP COLUMN IF EXISTS "has_triggered";
